@@ -1,6 +1,7 @@
 package com.myblog.endpoint;
 
 import java.math.BigInteger;
+import java.net.URI;
 import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -50,10 +52,13 @@ public class BlogPostController {
 	}
 	
 	@RequestMapping(method=RequestMethod.POST)
-	public HttpEntity<BlogPostResource> createPost(@RequestBody BlogPost blogPost) {
+	public HttpEntity<Void> createPost(@RequestBody BlogPost blogPost) {
 		blogPost.setPublishedTimeStamp(new Date());
 		BlogPost savedPost = blogPostRepository.save(blogPost);
-		return new ResponseEntity<>(blogPostAssembler.toResource(savedPost), HttpStatus.CREATED);
+		BlogPostResource resource = blogPostAssembler.toResource(savedPost);
+		HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setLocation(URI.create(resource.getLink("self").getHref()));
+		return new ResponseEntity<>(httpHeaders, HttpStatus.CREATED);
 	}
 
 }
