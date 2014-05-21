@@ -4,7 +4,7 @@ import javax.servlet.Filter;
 
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
-import org.springframework.web.filter.HiddenHttpMethodFilter;
+import org.springframework.web.filter.DelegatingFilterProxy;
 import org.springframework.web.multipart.support.MultipartFilter;
 import org.springframework.web.servlet.support.AbstractDispatcherServletInitializer;
 
@@ -15,7 +15,7 @@ public class ApplicationInitializer extends AbstractDispatcherServletInitializer
         AnnotationConfigWebApplicationContext rootAppContext = new AnnotationConfigWebApplicationContext();
         //set active profile for cloud foundry
         
-        rootAppContext.register( MongoConfig.class );
+        rootAppContext.register( MongoConfig.class, SecurityConfig.class );
         return rootAppContext;
     }
 	
@@ -28,10 +28,11 @@ public class ApplicationInitializer extends AbstractDispatcherServletInitializer
 
     @Override
     protected Filter[] getServletFilters() {
-        return new Filter[]{new HiddenHttpMethodFilter(), new MultipartFilter()};
+        return new Filter[]{
+                new DelegatingFilterProxy("springSecurityFilterChain"), 
+                new MultipartFilter()
+                };
     }
-
-
 
     @Override
     protected WebApplicationContext createServletApplicationContext() {
